@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulario de Login</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Vue.js -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+  <!-- Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <!-- Vue Router (si lo necesitas) -->
+  <script src="https://cdn.jsdelivr.net/npm/vue-router@3.5.3/dist/vue-router.js"></script>
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">Guardia</a>
+    <button class="navbar-toggler d-lg-none" type="button" data-toggle="collapse" data-target="#collapsibleNavId" aria-controls="collapsibleNavId"
+        aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="collapsibleNavId">
+      <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+        <li class="nav-item active">
+          <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Login</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <div id="app" class="container mt-5">
+    <form @submit.prevent="login">
+      <!-- Campo Usuario -->
+      <div class="form-group">
+        <label for="inputUser">Usuario</label>
+        <input type="text" id="inputUser" class="form-control" v-model="usuario" required aria-describedby="userHelpBlock" />
+        <small id="userHelpBlock" class="form-text text-muted">
+          Ingrese su Usuario.
+        </small>
+      </div>
+
+      <!-- Campo Contraseña -->
+      <div class="form-group mt-3">
+        <label for="inputPassword">Contraseña</label>
+        <input
+          type="password"
+          id="inputPassword"
+          class="form-control"
+          v-model="contrasena"
+          required
+          aria-describedby="passwordHelpBlock"
+        />
+        <small id="passwordHelpBlock" class="form-text text-muted">
+          Su contraseña debe tener entre 8 y 20 caracteres, contener letras y números.
+        </small>
+      </div>
+
+      <!-- Botón de enviar -->
+      <button type="submit" class="btn btn-primary mt-3">Ingresar</button>
+      <p v-if="error" class="text-danger mt-3">{{ error }}</p>
+    </form>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data() {
+        return {
+          usuario: '',  
+          contrasena: '',  
+          error: null,  
+        };
+      },
+      methods: {
+        async login() {
+          try {
+            // Realizamos la solicitud POST a la ruta de login de la API
+            const response = await axios.post('http://127.0.0.1:8000/api/login', {
+              usuario: this.usuario,  
+              contrasena: this.contrasena,
+            });
+  
+            // Si la autenticación es exitosa, recibimos un token
+            const token = response.data.access_token;
+  
+            // Almacenar el token en localStorage
+            localStorage.setItem('token', token);
+  
+            // Redirigir al usuario a la página protegida
+            window.location.href = 'pages/dashboardAdministrador.html';  
+          } catch (error) {
+            // Muestra mensaje de error si las credenciales son incorrectas
+            this.error = 'Credenciales incorrectas. Intente nuevamente.';
+            console.error(error);
+          }
+        },
+      },
+    });
+  </script>
+  
+</body>
+
+</html>

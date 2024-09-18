@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Guardia</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"> 
+    <!-- Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+            <a class="navbar-brand" href="#" @click="currentView = 'bienvenida'">Guardia</a>
+            <button class="navbar-toggler d-lg-none" type="button" data-toggle="collapse" data-target="#collapsibleNavId" aria-controls="collapsibleNavId"
+                aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="collapsibleNavId">
+              <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" @click="currentView = 'pacientes'">Pacientes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" @click="currentView = 'medicos'">Médicos</a>
+                </li> 
+                <li class="nav-item">
+                    <a class="nav-link" href="#" @click="currentView = 'enfermeros'">Enfermeros</a>
+                </li>
+              </ul>
+            </div>
+          </nav>
+        <!-- Vistas Dinámicas -->
+        <div class="container mt-4">
+            <!-- Renderiza el componente según la opción seleccionada en el menú -->
+            <component :is="currentView"></component>
+        </div>
+    </div>
+
+    <!-- Templates Vue -->
+    <script>
+        // Componente de Bienvenida (vista inicial)
+        const Bienvenida = {
+            template: `
+                <div class="text-center">
+                    <h3>Bienvenido al Dashboard de Administración</h3>
+                    <p>Desde aquí, puedes realizar las siguientes tareas:</p>
+                    <ul class="list-unstyled">
+                        <li>- Cargar nuevos pacientes</li>
+                        <li>- Gestionar medicos</li>
+                        <li>- Gestionar enfermeros</li>
+                        <li>- Revisar y actualizar datos de pacientes</li>
+                        <li>- Y muchas más tareas administrativas</li>
+                    </ul>
+                    <p>Utiliza el menú superior para acceder a las distintas funcionalidades.</p>
+                </div>
+            `
+        };
+
+        // Componente Pacientes
+        const Pacientes = {
+        template: `
+            <div>
+                <h3>Gestión de Pacientes</h3>
+
+                <!-- Botón para cargar un nuevo paciente -->
+                <button class="btn btn-success mb-3" @click="mostrarFormulario = !mostrarFormulario">
+                    Cargar Paciente
+                </button>
+
+                <!-- Formulario para crear nuevo paciente -->
+                <div v-if="mostrarFormulario" class="mb-4">
+                    <form @submit.prevent="crearPaciente">
+                        <div class="form-group">
+                            <label for="nombre">Nombre:</label>
+                            <input type="text" id="nombre" v-model="nombre" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="apellido">Apellido:</label>
+                            <input type="text" id="apellido" v-model="apellido" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="dni">DNI:</label>
+                            <input type="text" id="dni" v-model="dni" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="fecha_nacimiento">Fecha de Nacimiento (YYYY-MM-DD):</label>
+                            <input type="date" id="fecha_nacimiento" v-model="fecha_nacimiento" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="direccion">Direccion:</label>
+                            <input type="text" id="direccion" v-model="direccion" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="telefono">Telefono:</label>
+                            <input type="text" id="telefono" v-model="telefono" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="text" id="email" v-model="email" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="estado_atencion">Estado de Atencion:</label>
+                            <input type="text" id="estado_atencion" v-model="estado_atencion" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Crear Paciente</button>
+                    </form>
+                </div>
+
+                <!-- Tabla con los datos de los pacientes -->
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>DNI</th>
+                            <th>Fecha de Nacimiento</th>
+                            <th>Teléfono</th>
+                            <th>Dirección</th>
+                            <th>Email</th>
+                            <th>Estado de Atencion</th>
+                            <th>Operaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="paciente in pacientes" :key="paciente.id">
+                            <td>{{ paciente.nombre }}</td>
+                            <td>{{ paciente.apellido }}</td>
+                            <td>{{ paciente.dni }}</td>
+                            <td>{{ paciente.fecha_nacimiento }}</td>
+                            <td>{{ paciente.telefono }}</td>
+                            <td>{{ paciente.direccion }}</td>
+                            <td>{{ paciente.email }}</td>
+                            <td>{{ paciente.estado_atencion }}</td>
+                            <td>
+                                <!-- Botones de operaciones CRUD -->
+                                <button class="btn btn-info btn-sm" @click="editarPaciente(paciente)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @click="eliminarPaciente(paciente.id)">Eliminar</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `,
+        data() {
+            return {
+                pacientes: [],  // Aquí se almacenarán los datos de los pacientes
+                mostrarFormulario: false,  // Controla la visibilidad del formulario
+                nombre: '',
+                apellido: '',
+                dni: '',
+                telefono: '',
+                direccion: '',
+                fecha_nacimiento: ''
+            };
+        },
+        created() {
+            this.fetchPacientes();  // Carga los pacientes cuando se crea el componente
+        },
+        methods: {
+            async fetchPacientes() {
+                try {
+                    const response = await axios.get('http://127.0.0.1:8000/api/pacientes', {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem('token')}`  // Incluimos el token de autenticación
+                        }
+                    });
+                    this.pacientes = response.data;  // Asignamos los datos de los pacientes
+                } catch (error) {
+                    console.error('Error al obtener la lista de pacientes:', error);
+                }
+            },
+            async crearPaciente() {
+                try {
+                    const nuevoPaciente = {
+                        nombre: this.nombre,
+                        apellido: this.apellido,
+                        dni: this.dni,
+                        telefono: this.telefono,
+                        direccion: this.direccion,
+                        fecha_nacimiento: this.fecha_nacimiento,
+                        email: this.email,  
+                        estado_atencion: this.estado_atencion  
+                };
+        // Hacemos la solicitud POST para crear el nuevo paciente
+                await axios.post('http://127.0.0.1:8000/api/pacientes', nuevoPaciente, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                this.fetchPacientes();  // Recargamos la lista de pacientes
+                this.limpiarFormulario();  // Limpiamos el formulario
+                this.mostrarFormulario = false;  // Ocultamos el formulario después de crear
+                } catch (error) {
+                console.error('Error al crear el paciente:', error);
+                    }
+            },
+            
+            async eliminarPaciente(id) {
+                try {
+                    // Hacemos la solicitud DELETE para eliminar el paciente
+                    await axios.delete(`http://127.0.0.1:8000/api/pacientes/${id}`, {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    this.fetchPacientes();  // Recargamos la lista de pacientes
+                } catch (error) {
+                    console.error('Error al eliminar el paciente:', error);
+                }
+            },
+            editarPaciente(paciente) {
+                console.log("Editando paciente:", paciente);
+            },
+            limpiarFormulario() {
+                this.nombre = '';
+                this.apellido = '';
+                this.dni = '';
+                this.telefono = '';
+                this.direccion = '';
+                this.fecha_nacimiento = '';
+                this.email = '';  
+                this.estado_atencion = '';  
+            }
+        }
+    };
+
+        // Componente Médicos
+        const Medicos = {
+            template: `
+                <div>
+                    <h3>Gestión de Médicos</h3>
+                    <!-- Formulario o lista para gestionar médicos -->
+                </div>
+            `
+        };
+
+        // Componente Enfermeros
+const Enfermeros = {
+    template: `
+        <div>
+            <h3>Gestión de Enfermeros</h3>
+
+            <!-- Botón para cargar un nuevo paciente -->
+                <button class="btn btn-success mb-3" @click="mostrarFormulario = !mostrarFormulario">
+                    Cargar Enfermero
+                </button>
+
+                <!-- Formulario para crear nuevo paciente -->
+                <div v-if="mostrarFormulario" class="mb-4">
+            <form @submit.prevent="crearEnfermero">
+                <div class="form-group">
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" v-model="nuevoEnfermero.nombre" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="apellido">Apellido:</label>
+                    <input type="text" v-model="nuevoEnfermero.apellido" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="dni">DNI:</label>
+                    <input type="number" v-model="nuevoEnfermero.dni" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" v-model="nuevoEnfermero.email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="telefono">Teléfono:</label>
+                    <input type="text" v-model="nuevoEnfermero.telefono" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="usuario">Usuario:</label>
+                    <input type="text" v-model="nuevoEnfermero.usuario" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="contrasena">Contraseña:</label>
+                    <input type="password" v-model="nuevoEnfermero.contrasena" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Crear Enfermero</button>
+            </form>
+            </div>
+
+            <h3>Lista de Enfermeros</h3>
+            <table class="table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>DNI</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="enfermero in enfermeros" :key="enfermero.dni">
+                    <td>{{ enfermero.nombre }}</td>
+                    <td>{{ enfermero.apellido }}</td>
+                    <td>{{ enfermero.dni }}</td>
+                    <td>{{ enfermero.email }}</td>
+                    <td>{{ enfermero.telefono }}</td>
+                    <td>
+                        <button @click="editarEnfermero(enfermero)" class="btn btn-warning btn-sm">Editar</button>
+                        <button @click="eliminarEnfermero(enfermero.id)" class="btn btn-danger btn-sm">Eliminar</button>
+                    </td>
+                  </tr>
+                </tbody>
+            </table>
+
+            <!-- Modal de edición de enfermero -->
+            <div v-if="enfermeroSeleccionado">
+                <h3>Editar Enfermero</h3>
+                <form @submit.prevent="actualizarEnfermero">
+                    <div class="form-group">
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" v-model="enfermeroSeleccionado.nombre" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="apellido">Apellido:</label>
+                        <input type="text" v-model="enfermeroSeleccionado.apellido" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dni">DNI:</label>
+                        <input type="number" v-model="enfermeroSeleccionado.dni" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" v-model="enfermeroSeleccionado.email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono:</label>
+                        <input type="text" v-model="enfermeroSeleccionado.telefono" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="usuario">Usuario:</label>
+                        <input type="text" v-model="enfermeroSeleccionado.usuario" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Actualizar Enfermero</button>
+                </form>
+            </div>
+        </div>
+    `,
+    data() {
+        return {
+            enfermeros: [],
+            mostrarFormulario: false,  
+            nuevoEnfermero: {
+                nombre: '',
+                apellido: '',
+                dni: 0,
+                email: '',
+                telefono: '',
+                usuario: '',
+                contrasena: '',
+                rol_id: 3  // Este valor es fijo para los enfermeros
+            },
+            enfermeroSeleccionado: null  // Enfermero seleccionado para edición
+        };
+    },
+    created() {
+        this.fetchEnfermeros();
+    },
+    methods: {
+        async fetchEnfermeros() {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/enfermeros', {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`  // Incluye el token de autenticación
+                    }
+                });
+                this.enfermeros = response.data;
+            } catch (error) {
+                console.error('Error al obtener la lista de enfermeros:', error);
+            }
+        },
+        async crearEnfermero() {
+            try {
+                // Hacer la petición POST al backend para crear un enfermero
+                const response = await axios.post('http://127.0.0.1:8000/api/enfermeros', this.nuevoEnfermero, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`  // Incluye el token de autenticación
+                    }
+                });
+                
+                // Recargar la lista de enfermeros
+                this.fetchEnfermeros();
+                
+                // Limpiar el formulario
+                this.nuevoEnfermero = {
+                    nombre: '',
+                    apellido: '',
+                    dni: 0,
+                    email: '',
+                    telefono: '',
+                    usuario: '',
+                    contrasena: '',
+                    rol_id: 3  // Mantener el rol_id fijo en 3
+                };
+
+                this.mostrarFormulario = false;
+                
+                alert('Enfermero creado exitosamente');
+            } catch (error) {
+                console.error('Error al crear el enfermero:', error);
+            }
+        },
+        async eliminarEnfermero(id) {
+            try {
+                await axios.delete(`http://127.0.0.1:8000/api/enfermeros/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                // Actualizar la lista de enfermeros
+                this.fetchEnfermeros();
+            } catch (error) {
+                console.error('Error al eliminar el enfermero:', error);
+            }
+        },
+        editarEnfermero(enfermero) {
+            // Asignar el enfermero seleccionado para la edición
+            this.enfermeroSeleccionado = { ...enfermero };
+        },
+        async actualizarEnfermero() {
+            try {
+                // Hacer la petición PUT al backend para actualizar el enfermero
+                const response = await axios.put(`http://127.0.0.1:8000/api/enfermeros/${this.enfermeroSeleccionado.id}`, this.enfermeroSeleccionado, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                // Recargar la lista de enfermeros
+                this.fetchEnfermeros();
+                
+                // Limpiar el formulario de edición
+                this.enfermeroSeleccionado = null;
+                
+                alert('Enfermero actualizado exitosamente');
+            } catch (error) {
+                console.error('Error al actualizar el enfermero:', error);
+            }
+        }
+    }
+};
+
+
+        new Vue({
+            el: '#app',
+            data: {
+                currentView: 'bienvenida'  // Vista por defecto es la bienvenida
+            },
+            components: {
+                bienvenida: Bienvenida,
+                pacientes: Pacientes,
+                medicos: Medicos,
+                enfermeros: Enfermeros
+            }
+        });
+    </script>
+</body>
+</html>
