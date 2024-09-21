@@ -89,11 +89,23 @@
             // Si la autenticación es exitosa, recibimos un token
             const token = response.data.access_token;
   
+            // Decodificar el token JWT para obtener el rol
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const rol_id = payload.rol_id;
+
             // Almacenar el token en localStorage
             localStorage.setItem('token', token);
-  
-            // Redirigir al usuario a la página protegida
-            window.location.href = 'pages/dashboardAdministrador.html';  
+
+            // Redirigir al usuario a la página adecuada según su rol
+            if (rol_id === 1) {
+              window.location.href = 'pages/dashboardAdministrador.html';
+            } else if (rol_id === 2) {
+              window.location.href = 'pages/dashboardMedico.html';
+            } else if (rol_id === 3) {
+              window.location.href = 'pages/dashboardEnfermero.html';
+            } else {
+              throw new Error('Rol no reconocido');
+            }
           } catch (error) {
             // Muestra mensaje de error si las credenciales son incorrectas
             this.error = 'Credenciales incorrectas. Intente nuevamente.';
@@ -102,7 +114,7 @@
         },
       },
     });
-  </script>
+</script>
   
 </body>
 

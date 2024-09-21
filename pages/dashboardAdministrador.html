@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Guardia</title>
+    <title>Dashboard Adminitrador de Guardia</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"> 
     <!-- Vue.js -->
@@ -229,14 +229,224 @@
     };
 
         // Componente Médicos
-        const Medicos = {
-            template: `
-                <div>
-                    <h3>Gestión de Médicos</h3>
-                    <!-- Formulario o lista para gestionar médicos -->
-                </div>
-            `
+        // Componente Medicos
+const Medicos = {
+    template: `
+        <div>
+            <h3>Gestión de Médicos</h3>
+
+            <!-- Botón para cargar un nuevo médico -->
+            <button class="btn btn-success mb-3" @click="mostrarFormulario = !mostrarFormulario">
+                Cargar Médico
+            </button>
+
+            <!-- Formulario para crear nuevo médico -->
+            <div v-if="mostrarFormulario" class="mb-4">
+                <form @submit.prevent="crearMedico">
+                    <div class="form-group">
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" v-model="nuevoMedico.nombre" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="apellido">Apellido:</label>
+                        <input type="text" v-model="nuevoMedico.apellido" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dni">DNI:</label>
+                        <input type="number" v-model="nuevoMedico.dni" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" v-model="nuevoMedico.email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono:</label>
+                        <input type="text" v-model="nuevoMedico.telefono" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="usuario">Usuario:</label>
+                        <input type="text" v-model="nuevoMedico.usuario" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contrasena">Contraseña:</label>
+                        <input type="password" v-model="nuevoMedico.contrasena" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="especialidad">Especialidad:</label>
+                        <input type="text" v-model="nuevoMedico.especialidad" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Crear Médico</button>
+                </form>
+            </div>
+
+            <h3>Lista de Médicos</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>DNI</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Especialidad</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="medico in medicos" :key="medico.dni">
+                        <td>{{ medico.nombre }}</td>
+                        <td>{{ medico.apellido }}</td>
+                        <td>{{ medico.dni }}</td>
+                        <td>{{ medico.email }}</td>
+                        <td>{{ medico.telefono }}</td>
+                        <td>{{ medico.especialidad }}</td>
+                        <td>
+                            <button @click="editarMedico(medico)" class="btn btn-warning btn-sm">Editar</button>
+                            <button @click="eliminarMedico(medico.id)" class="btn btn-danger btn-sm">Eliminar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Modal de edición de médico -->
+            <div v-if="medicoSeleccionado">
+                <h3>Editar Médico</h3>
+                <form @submit.prevent="actualizarMedico">
+                    <div class="form-group">
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" v-model="medicoSeleccionado.nombre" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="apellido">Apellido:</label>
+                        <input type="text" v-model="medicoSeleccionado.apellido" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dni">DNI:</label>
+                        <input type="number" v-model="medicoSeleccionado.dni" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" v-model="medicoSeleccionado.email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono:</label>
+                        <input type="text" v-model="medicoSeleccionado.telefono" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="especialidad">Especialidad:</label>
+                        <input type="text" v-model="medicoSeleccionado.especialidad" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Actualizar Médico</button>
+                </form>
+            </div>
+        </div>
+    `,
+    data() {
+        return {
+            medicos: [],
+            mostrarFormulario: false,  
+            nuevoMedico: {
+                nombre: '',
+                apellido: '',
+                dni: 0,
+                email: '',
+                telefono: '',
+                usuario: '',
+                contrasena: '',
+                especialidad: '',
+                rol_id: 2  // Este valor es fijo para los médicos
+            },
+            medicoSeleccionado: null  // Médico seleccionado para edición
         };
+    },
+    created() {
+        this.fetchMedicos();
+    },
+    methods: {
+        async fetchMedicos() {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/medicos', {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`  // Incluye el token de autenticación
+                    }
+                });
+                this.medicos = response.data;
+            } catch (error) {
+                console.error('Error al obtener la lista de médicos:', error);
+            }
+        },
+        async crearMedico() {
+            try {
+                // Hacer la petición POST al backend para crear un médico
+                const response = await axios.post('http://127.0.0.1:8000/api/medicos', this.nuevoMedico, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`  // Incluye el token de autenticación
+                    }
+                });
+                
+                // Recargar la lista de médicos
+                this.fetchMedicos();
+                
+                // Limpiar el formulario
+                this.nuevoMedico = {
+                    nombre: '',
+                    apellido: '',
+                    dni: 0,
+                    email: '',
+                    telefono: '',
+                    usuario: '',
+                    contrasena: '',
+                    especialidad: '',
+                    rol_id: 2  // Mantener el rol_id fijo en 2
+                };
+
+                this.mostrarFormulario = false;
+                
+                alert('Médico creado exitosamente');
+            } catch (error) {
+                console.error('Error al crear el médico:', error);
+            }
+        },
+        async eliminarMedico(id) {
+            try {
+                await axios.delete(`http://127.0.0.1:8000/api/medicos/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                // Actualizar la lista de médicos
+                this.fetchMedicos();
+            } catch (error) {
+                console.error('Error al eliminar el médico:', error);
+            }
+        },
+        editarMedico(medico) {
+            // Asignar el médico seleccionado para la edición
+            this.medicoSeleccionado = { ...medico };
+        },
+        async actualizarMedico() {
+            try {
+                // Hacer la petición PUT al backend para actualizar el médico
+                const response = await axios.put(`http://127.0.0.1:8000/api/medicos/${this.medicoSeleccionado.id}`, this.medicoSeleccionado, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                // Recargar la lista de médicos
+                this.fetchMedicos();
+                
+                // Limpiar el formulario de edición
+                this.medicoSeleccionado = null;
+                
+                alert('Médico actualizado exitosamente');
+            } catch (error) {
+                console.error('Error al actualizar el médico:', error);
+            }
+        }
+    }
+};
+
 
         // Componente Enfermeros
 const Enfermeros = {
